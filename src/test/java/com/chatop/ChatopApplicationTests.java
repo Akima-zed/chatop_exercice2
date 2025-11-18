@@ -1,4 +1,4 @@
-package com.chatop.demo;
+package com.chatop;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
