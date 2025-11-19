@@ -1,7 +1,9 @@
 package com.chatop.chatop.controller;
 
+import com.chatop.chatop.dto.ImageDTO;
 import com.chatop.chatop.entity.Image;
 import com.chatop.chatop.entity.Rental;
+import com.chatop.chatop.mapper.ImageMapper;
 import com.chatop.chatop.repository.ImageRepository;
 import com.chatop.chatop.repository.RentalRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,52 +28,54 @@ public class ImageController {
     private final RentalRepository rentalRepo;
 
     @GetMapping
-    public List<Image> getAll() {
-        return imageRepo.findAll();
+    public List<ImageDTO> getAll() {
+        return imageRepo.findAll()
+                .stream()
+                .map(ImageMapper::toDTO)
+                .toList();
     }
 
     @PostMapping
-    public ResponseEntity<Image> uploadImage(@RequestParam("file") MultipartFile file,
-                                             @RequestParam Long rentalId) throws IOException {
-        // Vérifie le rental
+    public ResponseEntity<ImageDTO> uploadImage(@RequestParam("file") MultipartFile file,
+                                                @RequestParam Long rentalId) throws IOException {
+
         Rental rental = rentalRepo.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental introuvable"));
 
-        // Crée le dossier si nécessaire
         String folder = "uploads/";
         Files.createDirectories(Paths.get(folder));
 
-        // Nom unique pour éviter collisions
         String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
         Path filePath = Paths.get(folder, filename);
 
-        // Sauvegarde physique
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Création de l'entité Image
         Image image = Image.builder()
-                .url(filePath.toString())  // ou juste filename si tu veux
+                .url(filePath.toString())
                 .rental(rental)
                 .build();
 
         imageRepo.save(image);
-        return ResponseEntity.ok(image);
+
+        return ResponseEntity.ok(ImageMapper.toDTO(image));
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<Image> update(@PathVariable Long id, @RequestBody Image updatedImage) {
+    public ResponseEntity<ImageDTO> update(@PathVariable Long id, @RequestBody ImageDTO dto) {
         return imageRepo.findById(id)
                 .map(img -> {
-                    img.setUrl(updatedImage.getUrl());
 
-                    if (updatedImage.getRental() != null && updatedImage.getRental().getId() != null) {
-                        Rental rental = rentalRepo.findById(updatedImage.getRental().getId())
+                    img.setUrl(dto.getUrl());
+
+                    if (dto.getRentalId() != null) {
+                        Rental rental = rentalRepo.findById(dto.getRentalId())
                                 .orElseThrow(() -> new RuntimeException("Rental introuvable"));
                         img.setRental(rental);
                     }
 
-                    return ResponseEntity.ok(imageRepo.save(img));
+                    imageRepo.save(img);
+
+                    return ResponseEntity.ok(ImageMapper.toDTO(img));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
