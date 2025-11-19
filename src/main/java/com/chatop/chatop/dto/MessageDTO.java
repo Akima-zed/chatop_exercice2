@@ -1,11 +1,14 @@
 package com.chatop.chatop.dto;
 
+import lombok.Data;
 import java.util.Date;
 
-public record MessageDTO(
-        Long id,
-        String content,
-        Long rentalId,
-        Long userId,
-        Date createdAt
-) {}
+
+@Data
+public class MessageDTO {
+    private Long id;
+    private String content;
+    private Long rentalId;
+    private Long userId;
+    private Date createdAt;
+}
