@@ -1,11 +1,13 @@
 package com.chatop.chatop.mapper;
 
+import com.chatop.chatop.dto.ImageDTO;
 import com.chatop.chatop.dto.RentalDTO;
 import com.chatop.chatop.entity.Rental;
 
+import java.util.stream.Collectors;
+
 public class RentalMapper {
 
-    /** Transforme une entité Rental en DTO */
     public static RentalDTO toDTO(Rental rental) {
         if (rental == null) return null;
 
@@ -14,10 +16,23 @@ public class RentalMapper {
         dto.setTitle(rental.getTitle());
         dto.setDescription(rental.getDescription());
         dto.setPricePerDay(rental.getPricePerDay());
+
+        if (rental.getImages() != null) {
+            dto.setImages(rental.getImages()
+                    .stream()
+                    .map(image -> {
+                        ImageDTO imgDto = new ImageDTO();
+                        imgDto.setId(image.getId());
+                        imgDto.setUrl(image.getUrl());
+                        // Ne pas inclure rental dans ImageDTO pour éviter la boucle
+                        return imgDto;
+                    })
+                    .collect(Collectors.toList()));
+        }
+
         return dto;
     }
 
-    /** Transforme un DTO RentalDTO en entité Rental */
     public static Rental toEntity(RentalDTO dto) {
         if (dto == null) return null;
 
