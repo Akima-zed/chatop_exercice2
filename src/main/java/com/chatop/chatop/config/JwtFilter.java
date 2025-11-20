@@ -16,6 +16,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Filtre JWT exécuté une seule fois par requête.
+ * - Vérifie la présence et la validité d'un JWT.
+ * - Injecte l'authentification dans le contexte Spring Security si le token est valide.
+ * - Ignore certains endpoints publics.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -23,7 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
-    // Endpoints à ignorer pour le JWT
+    /** Liste des endpoints publics (sans JWT) */
     private static final List<String> PUBLIC_URLS = List.of(
             "/auth/login",
             "/auth/register",
@@ -39,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Si c'est un endpoint public, on ne fait rien
+        // Si c'est un endpoint public, on passe le filtre
         if (PUBLIC_URLS.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;
@@ -74,7 +80,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Si le JWT est invalide, on ne bloque pas ici, Spring Security gérera l'accès
+            // JWT invalide -> Spring gérera l'accès refusé
             logger.warn("JWT invalide: " + e.getMessage());
         }
 

@@ -7,24 +7,30 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * Classe utilitaire pour la gestion des JWT.
+ * - Génération de token
+ * - Validation
+ * - Extraction des informations (email / username)
+ */
 @Component
 public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String SECRET;
 
+    /** Durée de validité : 24h */
     private final long EXPIRATION = 24 * 60 * 60 * 1000; // 24h
 
-    // --- Génération de la clé
+    //** Génère la clé de signature à partir du secret */
     private Key getKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 
-    // --- Générer un JWT
+    //** Génère un JWT pour un email donné */
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
@@ -34,23 +40,23 @@ public class JwtUtil {
                 .compact();
     }
 
-    // --- Extraire l'email / username
+    /** Extrait le username/email depuis le JWT */
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // --- Vérifier validité token
+    /** Vérifie la validité d'un token pour un UserDetails */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String email = extractUsername(token);
         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    // --- Vérifier expiration
+    /** Vérifie si le token est expiré */
     private boolean isTokenExpired(String token) {
         return extractAllClaims(token).getExpiration().before(new Date());
     }
 
-    // --- Extraire les claims
+    /** Extrait tous les claims du JWT */
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getKey())

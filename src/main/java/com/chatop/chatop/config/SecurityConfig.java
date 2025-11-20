@@ -18,6 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configuration Spring Security :
+ * - CSRF désactivé (API REST)
+ * - JWT Stateless
+ * - Routes publiques : /auth/register, /auth/login, Swagger
+ * - Toutes les autres requêtes nécessitent authentification
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -26,14 +33,6 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
-    /**
-     * Configuration principale de Spring Security
-     * - CSRF désactivé (API REST)
-     * - Routes publiques : /auth/register et /auth/login + Swagger
-     * - Toutes les autres requêtes doivent être authentifiées
-     * - Stateless JWT
-     * - Injection du filtre JWT avant UsernamePasswordAuthenticationFilter
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -55,10 +54,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Bean AuthenticationProvider basé sur DaoAuthenticationProvider
-     * - Lie UserDetailsServiceImpl et PasswordEncoder
-     */
+    /** Provider d'authentification basé sur DaoAuthenticationProvider */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -67,17 +63,13 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * AuthenticationManager bean requis pour le service AuthService
-     */
+    /** AuthenticationManager bean nécessaire pour AuthService */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * PasswordEncoder : BCrypt pour chiffrer les mots de passe
-     */
+    /** PasswordEncoder : BCrypt pour sécuriser les mots de passe */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
