@@ -4,6 +4,10 @@ package com.chatop.chatop.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * Entité représentant un utilisateur de la plateforme.
+ * Les informations d’authentification sont stockées de manière sécurisée.
+ */
 @Entity
 @Table(name = "users")
 @Data

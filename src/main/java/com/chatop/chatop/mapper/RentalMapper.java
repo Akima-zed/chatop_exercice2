@@ -6,8 +6,18 @@ import com.chatop.chatop.entity.Rental;
 
 import java.util.stream.Collectors;
 
+/**
+ * Mapper utilitaire pour transformer les objets {@link Rental}
+ * vers {@link RentalDTO} et inversement. Ne mappe pas les relations complexes.
+ */
 public class RentalMapper {
 
+    /**
+     * Convertit une entité Rental vers un DTO incluant la liste des images.
+     *
+     * @param rental entité source
+     * @return DTO rempli ou null
+     */
     public static RentalDTO toDTO(Rental rental) {
         if (rental == null) return null;
 
@@ -33,6 +43,12 @@ public class RentalMapper {
         return dto;
     }
 
+    /**
+     * Convertit un DTO RentalDTO vers une entité Rental (sans images).
+     *
+     * @param dto DTO source
+     * @return entité construite ou null
+     */
     public static Rental toEntity(RentalDTO dto) {
         if (dto == null) return null;
 
