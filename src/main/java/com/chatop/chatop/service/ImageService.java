@@ -17,6 +17,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service de gestion des images liées aux locations.
+ * <p>
+ * Fournit les opérations CRUD pour les entités Image ainsi que la gestion des fichiers physiques.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -24,6 +30,11 @@ public class ImageService {
     private final ImageRepository imageRepo;
     private final RentalRepository rentalRepo;
 
+    /**
+     * Récupère toutes les images.
+     *
+     * @return une liste de DTO d'images
+     */
     public List<ImageDTO> getAll() {
         return imageRepo.findAll()
                 .stream()
@@ -31,6 +42,14 @@ public class ImageService {
                 .toList();
     }
 
+    /**
+     * Upload une nouvelle image pour une location donnée.
+     *
+     * @param file     le fichier image à uploader
+     * @param rentalId l'identifiant de la location associée
+     * @return le DTO de l'image créée
+     * @throws IOException si une erreur survient lors de l'écriture du fichier
+     */
     public ImageDTO uploadImage(MultipartFile file, Long rentalId) throws IOException {
         Rental rental = getRentalOrThrow(rentalId);
         String filePath = handleFileUpload(null, file);
@@ -39,6 +58,14 @@ public class ImageService {
         return ImageMapper.toDTO(image);
     }
 
+    /**
+     * Met à jour une image existante.
+     *
+     * @param id       l'identifiant de l'image à mettre à jour
+     * @param file     le nouveau fichier image (optionnel)
+     * @param rentalId l'identifiant de la location associée (optionnel)
+     * @return le DTO de l'image mise à jour ou null si l'image n'existe pas
+     */
     public ImageDTO updateImage(Long id, MultipartFile file, Long rentalId) {
         return imageRepo.findById(id)
                 .map(img -> {
@@ -54,6 +81,12 @@ public class ImageService {
                 .orElse(null);
     }
 
+    /**
+     * Supprime une image existante et son fichier associé.
+     *
+     * @param id l'identifiant de l'image à supprimer
+     * @return true si la suppression a réussi, false sinon
+     */
     public boolean deleteImage(Long id) {
         Image img = imageRepo.findById(id).orElse(null);
         if (img == null) return false;
@@ -64,6 +97,14 @@ public class ImageService {
     }
 
     // ---------------- Méthodes privées ----------------
+
+    /**
+     * Gère l'upload d'un fichier et supprime l'ancien fichier si nécessaire.
+     *
+     * @param oldUrl ancien chemin du fichier (optionnel)
+     * @param file   fichier à uploader
+     * @return le chemin du fichier stocké
+     */
     private String handleFileUpload(String oldUrl, MultipartFile file) {
         deleteFileIfExists(oldUrl);
         try {
@@ -78,6 +119,11 @@ public class ImageService {
         }
     }
 
+    /**
+     * Supprime un fichier si celui-ci existe.
+     *
+     * @param url chemin du fichier
+     */
     private void deleteFileIfExists(String url) {
         if (url == null) return;
         try {
@@ -87,6 +133,13 @@ public class ImageService {
         }
     }
 
+    /**
+     * Récupère une location par son identifiant ou lève une exception si elle n'existe pas.
+     *
+     * @param rentalId identifiant de la location
+     * @return la location
+     * @throws RuntimeException si la location n'existe pas
+     */
     private Rental getRentalOrThrow(Long rentalId) {
         return rentalRepo.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental introuvable"));
